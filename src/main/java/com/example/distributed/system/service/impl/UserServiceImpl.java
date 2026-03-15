@@ -22,8 +22,12 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     @Autowired
     private UserMapper userMapper;
 
-    @Autowired
     private BCryptPasswordEncoder passwordEncoder;
+
+    @Autowired
+    public void setPasswordEncoder(BCryptPasswordEncoder passwordEncoder) {
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -31,7 +35,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     @Override
     public UserResponse register(RegisterRequest request) {
         // 检查用户名是否已存在
-        if (userMapper.findByUsername(request.user()) != null) {
+        if (userMapper.findByUsername(request.getUsername()) != null) {
             throw new RuntimeException("Username already exists");
         }
 
