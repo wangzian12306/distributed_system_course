@@ -1,26 +1,11 @@
 package com.example.distributed.system.config;
 
-import org.elasticsearch.client.RestHighLevelClient;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.elasticsearch.client.ClientConfiguration;
-import org.springframework.data.elasticsearch.client.RestClients;
-import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
-import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
+import org.springframework.data.elasticsearch.repository.config.EnableElasticsearchRepositories;
 
 @Configuration
+@EnableElasticsearchRepositories(basePackages = "com.example.distributed.system.repository")
 public class ElasticSearchConfig {
-
-    @Bean
-    public RestHighLevelClient elasticsearchClient() {
-        ClientConfiguration clientConfiguration = ClientConfiguration.builder()
-                .connectedTo("localhost:9200")
-                .build();
-        return RestClients.create(clientConfiguration).rest();
-    }
-
-    @Bean
-    public ElasticsearchOperations elasticsearchTemplate(RestHighLevelClient client) {
-        return new ElasticsearchRestTemplate(client);
-    }
+    // Spring Boot 2.7+ 版本会自动配置Elasticsearch客户端，无需手动创建
+    // 如需自定义配置，可以在application.yml中设置
 }

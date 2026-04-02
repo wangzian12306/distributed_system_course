@@ -44,16 +44,21 @@ public class ProductSearchServiceImpl implements ProductSearchService {
 
     @Override
     public void initAllProductsToElasticSearch() {
-        // 这里简化处理，实际应该从数据库查询所有商品
-        // 由于我们没有实现查询所有商品的方法，这里暂时注释掉
-        // List<Product> products = productMapper.findAll();
-        // List<ProductDocument> documents = products.stream()
-        //         .map(product -> {
-        //             ProductDocument document = new ProductDocument();
-        //             BeanUtils.copyProperties(product, document);
-        //             return document;
-        //         })
-        //         .collect(Collectors.toList());
-        // productRepository.saveAll(documents);
+        // 从数据库查询所有商品
+        List<Product> products = productMapper.findAll();
+        // 转换为ProductDocument
+        List<ProductDocument> documents = products.stream()
+                .map(product -> {
+                    ProductDocument document = new ProductDocument();
+                    BeanUtils.copyProperties(product, document);
+                    // 处理price字段类型转换
+                    if (product.getPrice() != null) {
+                        document.setPrice(product.getPrice().doubleValue());
+                    }
+                    return document;
+                })
+                .collect(Collectors.toList());
+        // 保存到ElasticSearch
+        productRepository.saveAll(documents);
     }
 }

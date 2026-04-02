@@ -13,4 +13,5 @@ public interface ProductMapper {
     void updateSeckillStock(@Param("id") Long id, @Param("seckillStock") Integer seckillStock);
     void decreaseSeckillStock(@Param("id") Long id);
     List<Product> findSeckillProducts();
+    List<Product> findAll();
 }

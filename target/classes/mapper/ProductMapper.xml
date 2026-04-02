@@ -30,4 +30,9 @@
         FROM product
         WHERE seckill_stock > 0
     </select>
+
+    <select id="findAll" resultType="com.example.distributed.system.entity.Product">
+        SELECT id, name, description, price, stock, seckill_stock as seckillStock, create_time as createTime, update_time as updateTime
+        FROM product
+    </select>
 </mapper>
