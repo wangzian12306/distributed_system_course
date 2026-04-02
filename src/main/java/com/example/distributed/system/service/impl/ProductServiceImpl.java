@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -107,23 +108,67 @@ public class ProductServiceImpl implements ProductService {
         return true;
     }
 
+    // 秒杀库存缓存键前缀
+    private static final String SECKILL_STOCK_KEY_PREFIX = "seckill:stock:";
+
     @Override
     public boolean decreaseSeckillStock(Long id) {
-        // 1. 减少秒杀库存
-        Product product = productMapper.findById(id);
-        if (product == null || product.getSeckillStock() <= 0) {
+        // 1. 从Redis获取秒杀库存
+        String stockKey = SECKILL_STOCK_KEY_PREFIX + id;
+        Integer stock = (Integer) redisTemplate.opsForValue().get(stockKey);
+
+        // 2. 检查库存
+        if (stock == null || stock <= 0) {
+            // 库存不足或Redis中无数据，从数据库加载并更新缓存
+            Product product = productMapper.findById(id);
+            if (product == null || product.getSeckillStock() <= 0) {
+                // 更新Redis缓存为0
+                redisTemplate.opsForValue().set(stockKey, 0, CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
+                return false;
+            }
+            // 更新Redis缓存
+            redisTemplate.opsForValue().set(stockKey, product.getSeckillStock(), CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
+            stock = product.getSeckillStock();
+        }
+
+        // 3. 使用Redis原子操作预扣减库存
+        Long result = redisTemplate.opsForValue().decrement(stockKey);
+        if (result < 0) {
+            // 库存不足，恢复库存
+            redisTemplate.opsForValue().increment(stockKey);
             return false;
         }
 
-        // 2. 更新秒杀库存
-        int newSeckillStock = product.getSeckillStock() - 1;
-        productMapper.updateSeckillStock(id, newSeckillStock);
-
-        // 3. 更新缓存
-        String cacheKey = PRODUCT_CACHE_KEY_PREFIX + id;
-        product.setSeckillStock(newSeckillStock);
-        redisTemplate.opsForValue().set(cacheKey, product, CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
+        // 4. 异步更新数据库库存
+        new Thread(() -> {
+            try {
+                // 更新数据库秒杀库存
+                productMapper.decreaseSeckillStock(id);
+                // 更新商品缓存
+                String cacheKey = PRODUCT_CACHE_KEY_PREFIX + id;
+                Product product = productMapper.findById(id);
+                if (product != null) {
+                    redisTemplate.opsForValue().set(cacheKey, product, CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
+                }
+            } catch (Exception e) {
+                // 记录错误日志
+                System.err.println("更新秒杀库存失败: " + e.getMessage());
+                // 恢复Redis库存
+                redisTemplate.opsForValue().increment(stockKey);
+            }
+        }).start();
 
         return true;
+    }
+
+    // 初始化秒杀库存到Redis
+    public void initSeckillStock() {
+        // 这里可以根据实际情况加载秒杀商品并初始化库存
+        // 示例：加载所有秒杀商品并将库存缓存到Redis
+        List<Product> seckillProducts = productMapper.findSeckillProducts();
+        for (Product product : seckillProducts) {
+            String stockKey = SECKILL_STOCK_KEY_PREFIX + product.getId();
+            redisTemplate.opsForValue().set(stockKey, product.getSeckillStock(), CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
+        }
     }
 }

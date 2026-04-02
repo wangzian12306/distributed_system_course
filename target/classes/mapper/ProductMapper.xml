@@ -18,4 +18,16 @@
         SET seckill_stock = #{seckillStock}
         WHERE id = #{id}
     </update>
+
+    <update id="decreaseSeckillStock" parameterType="java.lang.Long">
+        UPDATE product
+        SET seckill_stock = seckill_stock - 1
+        WHERE id = #{id} AND seckill_stock > 0
+    </update>
+
+    <select id="findSeckillProducts" resultType="com.example.distributed.system.entity.Product">
+        SELECT id, name, description, price, stock, seckill_stock as seckillStock, create_time as createTime, update_time as updateTime
+        FROM product
+        WHERE seckill_stock > 0
+    </select>
 </mapper>

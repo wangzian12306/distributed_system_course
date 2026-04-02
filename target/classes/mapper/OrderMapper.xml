@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.distributed.system.mapper.OrderMapper">
+    <insert id="insert" parameterType="com.example.distributed.system.entity.Order">
+        INSERT INTO orders (id, user_id, product_id, quantity, total_price, status, create_time, update_time)
+        VALUES (#{id}, #{userId}, #{productId}, #{quantity}, #{totalPrice}, #{status}, #{createTime}, #{updateTime})
+    </insert>
+
+    <select id="findById" parameterType="java.lang.Long" resultType="com.example.distributed.system.entity.Order">
+        SELECT * FROM orders WHERE id = #{id}
+    </select>
+
+    <select id="findByUserId" parameterType="java.lang.Long" resultType="com.example.distributed.system.entity.Order">
+        SELECT * FROM orders WHERE user_id = #{userId}
+    </select>
+</mapper>

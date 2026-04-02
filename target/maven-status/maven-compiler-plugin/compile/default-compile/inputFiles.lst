@@ -1,5 +1,8 @@
+D:\desktop\大三下\分布式\code\fenbu\src\main\java\com\example\distributed\system\service\impl\OrderServiceImpl.java
+D:\desktop\大三下\分布式\code\fenbu\src\main\java\com\example\distributed\system\controller\OrderController.java
 D:\desktop\大三下\分布式\code\fenbu\src\main\java\com\example\distributed\system\config\DataSourceConfig.java
 D:\desktop\大三下\分布式\code\fenbu\src\main\java\com\example\distributed\system\service\impl\UserServiceImpl.java
+D:\desktop\大三下\分布式\code\fenbu\src\main\java\com\example\distributed\system\service\OrderService.java
 D:\desktop\大三下\分布式\code\fenbu\src\main\java\com\example\distributed\system\service\impl\ProductSearchServiceImpl.java
 D:\desktop\大三下\分布式\code\fenbu\src\main\java\com\example\distributed\system\controller\ProductController.java
 D:\desktop\大三下\分布式\code\fenbu\src\main\java\com\example\distributed\system\controller\UserController.java
@@ -14,10 +17,12 @@ D:\desktop\大三下\分布式\code\fenbu\src\main\java\com\example\distributed\
 D:\desktop\大三下\分布式\code\fenbu\src\main\java\com\example\distributed\system\Application.java
 D:\desktop\大三下\分布式\code\fenbu\src\main\java\com\example\distributed\system\service\ProductService.java
 D:\desktop\大三下\分布式\code\fenbu\src\main\java\com\example\distributed\system\dto\RegisterRequest.java
+D:\desktop\大三下\分布式\code\fenbu\src\main\java\com\example\distributed\system\entity\Order.java
 D:\desktop\大三下\分布式\code\fenbu\src\main\java\com\example\distributed\system\service\ProductSearchService.java
 D:\desktop\大三下\分布式\code\fenbu\src\main\java\com\example\distributed\system\mapper\ProductMapper.java
 D:\desktop\大三下\分布式\code\fenbu\src\main\java\com\example\distributed\system\service\impl\ProductServiceImpl.java
 D:\desktop\大三下\分布式\code\fenbu\src\main\java\com\example\distributed\system\aspect\DataSourceAspect.java
+D:\desktop\大三下\分布式\code\fenbu\src\main\java\com\example\distributed\system\mapper\OrderMapper.java
 D:\desktop\大三下\分布式\code\fenbu\src\main\java\com\example\distributed\system\config\RedisConfig.java
 D:\desktop\大三下\分布式\code\fenbu\src\main\java\com\example\distributed\system\config\WebSecurityConfig.java
 D:\desktop\大三下\分布式\code\fenbu\src\main\java\com\example\distributed\system\config\ElasticSearchConfig.java
