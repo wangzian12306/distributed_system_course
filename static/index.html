@@ -3,60 +3,155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>商品库存与秒杀系统</title>
+    <title>分布式商品库存与秒杀系统</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>商品库存与秒杀系统</h1>
+            <h1>分布式商品库存与秒杀系统</h1>
             <nav>
                 <ul>
-                    <li><a href="#">首页</a></li>
-                    <li><a href="#">商品列表</a></li>
-                    <li><a href="#">秒杀活动</a></li>
-                    <li><a href="#">个人中心</a></li>
+                    <li><a href="#" class="nav-link active" data-page="home">首页</a></li>
+                    <li><a href="#" class="nav-link" data-page="products">商品列表</a></li>
+                    <li><a href="#" class="nav-link" data-page="seckill">秒杀活动</a></li>
+                    <li><a href="#" class="nav-link" data-page="orders">我的订单</a></li>
+                    <li id="auth-nav">
+                        <a href="#" id="login-link">登录</a>
+                        <span>|</span>
+                        <a href="#" id="register-link">注册</a>
+                    </li>
+                    <li id="user-nav" style="display: none;">
+                        <span id="welcome-msg">欢迎您</span>
+                        <a href="#" id="logout-link">退出</a>
+                    </li>
                 </ul>
             </nav>
         </header>
-        
+
         <main>
-            <section class="hero">
-                <h2>欢迎使用商品库存与秒杀系统</h2>
-                <p>高效、可靠的分布式系统解决方案</p>
-                <button id="testApiBtn">测试API</button>
+            <!-- 搜索栏 -->
+            <section class="search-bar" id="search-section">
+                <input type="text" id="search-input" placeholder="搜索商品名称或描述...">
+                <button id="search-btn">搜索</button>
             </section>
-            
-            <section class="products">
-                <h3>热门商品</h3>
-                <div class="product-list">
-                    <div class="product-item">
-                        <h4>商品1</h4>
-                        <p>商品描述1</p>
-                        <p class="price">¥100.00</p>
-                        <button>立即购买</button>
-                    </div>
-                    <div class="product-item">
-                        <h4>商品2</h4>
-                        <p>商品描述2</p>
-                        <p class="price">¥200.00</p>
-                        <button>立即购买</button>
-                    </div>
-                    <div class="product-item">
-                        <h4>商品3</h4>
-                        <p>商品描述3</p>
-                        <p class="price">¥300.00</p>
-                        <button>立即购买</button>
+
+            <!-- 实例ID显示 -->
+            <section class="instance-info" id="instance-info" style="display: none;">
+                <span>当前实例: <strong id="instance-id">-</strong></span>
+            </section>
+
+            <!-- 首页 -->
+            <section id="page-home" class="page active">
+                <div class="hero">
+                    <h2>欢迎使用分布式商品库存与秒杀系统</h2>
+                    <p>高效、可靠的分布式系统解决方案</p>
+                    <div class="hero-features">
+                        <div class="feature">
+                            <h3>🚀 分布式缓存</h3>
+                            <p>Redis缓存 + 三重保护（穿透/击穿/雪崩）</p>
+                        </div>
+                        <div class="feature">
+                            <h3>⚡ 读写分离</h3>
+                            <p>MySQL主从复制，@ReadOnly注解自动切换</p>
+                        </div>
+                        <div class="feature">
+                            <h3>🔍 全文搜索</h3>
+                            <p>ElasticSearch高性能商品搜索引擎</p>
+                        </div>
+                        <div class="feature">
+                            <h3>🎯 秒杀系统</h3>
+                            <p>Lua脚本原子操作，Kafka异步削峰</p>
+                        </div>
                     </div>
                 </div>
+
+                <section class="products">
+                    <h3>热门商品</h3>
+                    <div id="hot-products" class="product-list"></div>
+                </section>
             </section>
+
+            <!-- 商品列表页 -->
+            <section id="page-products" class="page">
+                <h2>商品列表</h2>
+                <div id="all-products" class="product-list"></div>
+            </section>
+
+            <!-- 秒杀活动页 -->
+            <section id="page-seckill" class="page">
+                <h2>限时秒杀</h2>
+                <div class="seckill-tip">
+                    <span class="tip-icon">⚠️</span>
+                    <span>每个商品每个用户只能秒杀一次！</span>
+                </div>
+                <div id="seckill-products" class="product-list"></div>
+            </section>
+
+            <!-- 订单页 -->
+            <section id="page-orders" class="page">
+                <h2>我的订单</h2>
+                <div id="orders-list"></div>
+            </section>
+
+            <!-- 登录弹窗 -->
+            <div id="login-modal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h2>用户登录</h2>
+                    <form id="login-form">
+                        <div class="form-group">
+                            <label>用户名:</label>
+                            <input type="text" id="login-username" required>
+                        </div>
+                        <div class="form-group">
+                            <label>密码:</label>
+                            <input type="password" id="login-password" required>
+                        </div>
+                        <button type="submit">登录</button>
+                    </form>
+                    <p class="form-tip">没有账号？<a href="#" id="show-register">立即注册</a></p>
+                </div>
+            </div>
+
+            <!-- 注册弹窗 -->
+            <div id="register-modal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h2>用户注册</h2>
+                    <form id="register-form">
+                        <div class="form-group">
+                            <label>用户名:</label>
+                            <input type="text" id="register-username" required>
+                        </div>
+                        <div class="form-group">
+                            <label>邮箱:</label>
+                            <input type="email" id="register-email" required>
+                        </div>
+                        <div class="form-group">
+                            <label>密码:</label>
+                            <input type="password" id="register-password" required>
+                        </div>
+                        <button type="submit">注册</button>
+                    </form>
+                    <p class="form-tip">已有账号？<a href="#" id="show-login">立即登录</a></p>
+                </div>
+            </div>
+
+            <!-- 商品详情弹窗 -->
+            <div id="product-modal" class="modal">
+                <div class="modal-content product-detail">
+                    <span class="close">&times;</span>
+                    <div id="product-detail-content"></div>
+                </div>
+            </div>
         </main>
-        
+
         <footer>
-            <p>&copy; 2026 商品库存与秒杀系统</p>
+            <p>&copy; 2026 分布式商品库存与秒杀系统 | 实例ID: <span id="footer-instance-id">-</span></p>
         </footer>
     </div>
-    
+
     <script src="js/main.js"></script>
 </body>
 </html>

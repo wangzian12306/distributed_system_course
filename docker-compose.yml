@@ -25,8 +25,16 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/distributed_system?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      SPRING_DATA_ELASTICSEARCH_CLIENT_REACTIVE_ENDPOINTS: elasticsearch:9200
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SERVER_PORT: 8080
     depends_on:
       - mysql
+      - redis
+      - elasticsearch
+      - kafka
     networks:
       - distributed_network
 
@@ -40,8 +48,16 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/distributed_system?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      SPRING_DATA_ELASTICSEARCH_CLIENT_REACTIVE_ENDPOINTS: elasticsearch:9200
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SERVER_PORT: 8080
     depends_on:
       - mysql
+      - redis
+      - elasticsearch
+      - kafka
     networks:
       - distributed_network
 
@@ -93,10 +109,27 @@ services:
     networks:
       - distributed_network
 
+  # ElasticSearch服务
+  elasticsearch:
+    image: elasticsearch:7.17.10
+    container_name: elasticsearch
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    networks:
+      - distributed_network
+
 networks:
   distributed_network:
     driver: bridge
 
 volumes:
   mysql_data:
+    driver: local
+  es_data:
     driver: local
