@@ -9,6 +9,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,6 +21,18 @@ public class ProductSearchServiceImpl implements ProductSearchService {
 
     @Autowired
     private ProductMapper productMapper;
+
+    // 启动时自动同步所有商品到ElasticSearch
+    @PostConstruct
+    public void init() {
+        try {
+            System.out.println("开始同步商品数据到ElasticSearch...");
+            initAllProductsToElasticSearch();
+            System.out.println("商品数据同步到ElasticSearch完成");
+        } catch (Exception e) {
+            System.err.println("同步商品数据到ElasticSearch失败: " + e.getMessage());
+        }
+    }
 
     @Override
     public void syncProductToElasticSearch(Product product) {

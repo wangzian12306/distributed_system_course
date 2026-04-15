@@ -1,5 +1,7 @@
 -- 创建数据库
 CREATE DATABASE IF NOT EXISTS distributed_system CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS distributed_system_order_0 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS distributed_system_order_1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- 使用数据库
 USE distributed_system;
@@ -25,8 +27,19 @@ CREATE TABLE IF NOT EXISTS product (
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
--- 创建订单表
-CREATE TABLE IF NOT EXISTS orders (
+-- 创建库存表
+CREATE TABLE IF NOT EXISTS inventory (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    product_id BIGINT NOT NULL UNIQUE,
+    stock INT NOT NULL DEFAULT 0,
+    seckill_stock INT NOT NULL DEFAULT 0,
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- 创建订单表（用于分库分表示例）
+USE distributed_system_order_0;
+CREATE TABLE IF NOT EXISTS orders_0 (
     id BIGINT PRIMARY KEY,
     user_id BIGINT NOT NULL,
     product_id BIGINT NOT NULL,
@@ -34,10 +47,43 @@ CREATE TABLE IF NOT EXISTS orders (
     total_price DECIMAL(10, 2) NOT NULL,
     status INT NOT NULL DEFAULT 1,
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES user(id),
-    FOREIGN KEY (product_id) REFERENCES product(id)
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
+CREATE TABLE IF NOT EXISTS orders_1 (
+    id BIGINT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    product_id BIGINT NOT NULL,
+    quantity INT NOT NULL,
+    total_price DECIMAL(10, 2) NOT NULL,
+    status INT NOT NULL DEFAULT 1,
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+USE distributed_system_order_1;
+CREATE TABLE IF NOT EXISTS orders_0 (
+    id BIGINT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    product_id BIGINT NOT NULL,
+    quantity INT NOT NULL,
+    total_price DECIMAL(10, 2) NOT NULL,
+    status INT NOT NULL DEFAULT 1,
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS orders_1 (
+    id BIGINT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    product_id BIGINT NOT NULL,
+    quantity INT NOT NULL,
+    total_price DECIMAL(10, 2) NOT NULL,
+    status INT NOT NULL DEFAULT 1,
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- 切换回主数据库插入测试数据
+USE distributed_system;
 
 -- 插入测试数据
 INSERT INTO user (username, password, email) VALUES
@@ -51,3 +97,11 @@ INSERT INTO product (name, description, price, stock, seckill_stock) VALUES
 ('商品3', '这是商品3的描述', 300.00, 300, 30),
 ('商品4', '这是商品4的描述', 400.00, 400, 40),
 ('商品5', '这是商品5的描述', 500.00, 500, 50);
+
+-- 插入测试库存数据
+INSERT INTO inventory (product_id, stock, seckill_stock) VALUES
+(1, 100, 10),
+(2, 200, 20),
+(3, 300, 30),
+(4, 400, 40),
+(5, 500, 50);

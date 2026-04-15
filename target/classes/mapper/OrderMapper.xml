@@ -13,4 +13,8 @@
     <select id="findByUserId" parameterType="java.lang.Long" resultType="com.example.distributed.system.entity.Order">
         SELECT * FROM orders WHERE user_id = #{userId}
     </select>
+
+    <update id="updateStatus">
+        UPDATE orders SET status = #{status}, update_time = NOW() WHERE id = #{id}
+    </update>
 </mapper>

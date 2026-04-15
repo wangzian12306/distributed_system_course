@@ -14,29 +14,6 @@ import java.util.Map;
 @Configuration
 public class DataSourceConfig {
 
-    // 数据源类型枚举
-    public enum DataSourceType {
-        MASTER, SLAVE
-    }
-
-    // 线程本地变量，用于存储当前线程的数据源类型
-    private static final ThreadLocal<DataSourceType> DATA_SOURCE_TYPE = new ThreadLocal<>();
-
-    // 设置数据源类型
-    public static void setDataSourceType(DataSourceType type) {
-        DATA_SOURCE_TYPE.set(type);
-    }
-
-    // 获取数据源类型
-    public static DataSourceType getDataSourceType() {
-        return DATA_SOURCE_TYPE.get() != null ? DATA_SOURCE_TYPE.get() : DataSourceType.MASTER;
-    }
-
-    // 清除数据源类型
-    public static void clearDataSourceType() {
-        DATA_SOURCE_TYPE.remove();
-    }
-
     // 主数据源（写操作）
     @Bean(name = "masterDataSource")
     @ConfigurationProperties(prefix = "spring.datasource.master")
@@ -58,14 +35,15 @@ public class DataSourceConfig {
         AbstractRoutingDataSource routingDataSource = new AbstractRoutingDataSource() {
             @Override
             protected Object determineCurrentLookupKey() {
-                return getDataSourceType();
+                String dataSource = DataSourceContextHolder.getDataSource();
+                return dataSource != null ? dataSource : DataSourceNames.MASTER;
             }
         };
 
         // 配置数据源映射
         Map<Object, Object> dataSourceMap = new HashMap<>();
-        dataSourceMap.put(DataSourceType.MASTER, masterDataSource);
-        dataSourceMap.put(DataSourceType.SLAVE, slaveDataSource);
+        dataSourceMap.put(DataSourceNames.MASTER, masterDataSource);
+        dataSourceMap.put(DataSourceNames.SLAVE, slaveDataSource);
         routingDataSource.setTargetDataSources(dataSourceMap);
 
         // 设置默认数据源

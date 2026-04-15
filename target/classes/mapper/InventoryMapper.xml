@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.distributed.system.mapper.InventoryMapper">
+
+    <select id="findByProductId" resultType="com.example.distributed.system.entity.Inventory">
+        SELECT id, product_id as productId, stock, seckill_stock as seckillStock, create_time as createTime, update_time as updateTime
+        FROM inventory
+        WHERE product_id = #{productId}
+    </select>
+
+    <update id="decreaseStock">
+        UPDATE inventory
+        SET stock = stock - #{quantity}, update_time = NOW()
+        WHERE product_id = #{productId} AND stock >= #{quantity}
+    </update>
+
+    <update id="decreaseSeckillStock">
+        UPDATE inventory
+        SET seckill_stock = seckill_stock - 1, update_time = NOW()
+        WHERE product_id = #{productId} AND seckill_stock > 0
+    </update>
+
+    <update id="updateStock">
+        UPDATE inventory
+        SET stock = #{stock}, update_time = NOW()
+        WHERE product_id = #{productId}
+    </update>
+
+    <insert id="insert" parameterType="com.example.distributed.system.entity.Inventory">
+        INSERT INTO inventory (product_id, stock, seckill_stock)
+        VALUES (#{productId}, #{stock}, #{seckillStock})
+    </insert>
+
+</mapper>

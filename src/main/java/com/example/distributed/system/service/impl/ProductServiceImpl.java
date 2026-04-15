@@ -23,15 +23,17 @@ public class ProductServiceImpl implements ProductService {
 
     // 缓存键前缀
     private static final String PRODUCT_CACHE_KEY_PREFIX = "product:";
-    // 缓存过期时间（秒）
-    private static final long CACHE_EXPIRE_TIME = 3600;
-    // 缓存空值过期时间（秒）
-    private static final long CACHE_NULL_EXPIRE_TIME = 60;
+    // 基础缓存过期时间（秒）30分钟
+    private static final long BASE_CACHE_EXPIRE_TIME = 1800;
+    // 缓存过期时间（秒）用于向后兼容
+    private static final long CACHE_EXPIRE_TIME = 1800;
+    // 缓存空值过期时间（秒）5分钟
+    private static final long NULL_CACHE_EXPIRE_TIME = 300;
+    // 随机偏移量（秒）±5分钟
+    private static final long TTL_JITTER = 300;
 
     // 分布式锁前缀
     private static final String LOCK_KEY_PREFIX = "lock:product:";
-    // 锁过期时间（秒）
-    private static final long LOCK_EXPIRE_TIME = 10;
 
     // 本地锁，用于防止缓存击穿
     private final Lock lock = new ReentrantLock();
@@ -47,17 +49,22 @@ public class ProductServiceImpl implements ProductService {
         }
 
         // 2. 缓存穿透处理：检查是否为缓存空值
-        if (Boolean.TRUE.equals(redisTemplate.hasKey(cacheKey + ":null"))) {
+        String nullKey = cacheKey + ":null";
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(nullKey))) {
             return null;
         }
 
-        // 3. 缓存击穿处理：使用锁防止并发请求穿透到数据库
+        // 3. 缓存击穿处理：使用本地锁防止并发请求穿透到数据库
         if (lock.tryLock()) {
             try {
-                // 再次检查缓存，防止其他线程已经更新了缓存
+                // 双重检查：再次检查缓存，防止其他线程已经更新了缓存
                 product = (Product) redisTemplate.opsForValue().get(cacheKey);
                 if (product != null) {
                     return product;
+                }
+                // 再次检查空值缓存
+                if (Boolean.TRUE.equals(redisTemplate.hasKey(nullKey))) {
+                    return null;
                 }
 
                 // 4. 从数据库查询
@@ -65,23 +72,25 @@ public class ProductServiceImpl implements ProductService {
 
                 // 5. 更新缓存
                 if (product != null) {
-                    // 缓存雪崩处理：添加随机过期时间
-                    long expireTime = CACHE_EXPIRE_TIME + (long) (Math.random() * 300);
+                    // 缓存雪崩处理：添加随机过期时间（TTL jitter）
+                    long randomOffset = (long) (Math.random() * TTL_JITTER * 2) - TTL_JITTER;
+                    long expireTime = BASE_CACHE_EXPIRE_TIME + randomOffset;
                     redisTemplate.opsForValue().set(cacheKey, product, expireTime, TimeUnit.SECONDS);
                 } else {
-                    // 缓存穿透处理：缓存空值
-                    redisTemplate.opsForValue().set(cacheKey + ":null", "", CACHE_NULL_EXPIRE_TIME, TimeUnit.SECONDS);
+                    // 缓存穿透处理：缓存空值（较短的过期时间）
+                    redisTemplate.opsForValue().set(nullKey, "", NULL_CACHE_EXPIRE_TIME, TimeUnit.SECONDS);
                 }
             } finally {
                 lock.unlock();
             }
         } else {
-            // 6. 其他线程获取锁失败，等待后重试
+            // 6. 其他线程获取锁失败，短暂等待后重试
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
+            // 递归重试
             return getProductById(id);
         }
 
